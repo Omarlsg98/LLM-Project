@@ -156,7 +156,7 @@ class ModelPredictor:
                     choice=choice,
                 )
                 _, score = self.score(prompt)
-                llm_score_for_label = np.mean(score[len(choice) :])
+                llm_score_for_label = np.mean(score[-len(choice) :])
                 score_for_label.append(llm_score_for_label)
 
             if return_probs:
