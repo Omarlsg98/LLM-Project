@@ -1,3 +1,10 @@
+"""
+This is the loader.py file. It is used to load the data from the json files and to create the dataset fro gsm8k.
+
+The Dataset class is used to create a dataset from a list of dictionaries. The dictionaries are the json records from the data/gsm8k folder.
+"""
+
+import abc
 import json
 import os
 import random
@@ -6,7 +13,24 @@ from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 import numpy as np
 
 
-class Dataset:
+class Dataset(abc.ABC):
+    @abc.abstractmethod
+    def get_base_answer(self) -> Generator[Any, None, None]:
+        pass
+
+    @abc.abstractmethod
+    def get_type(
+        self, to_choice_mapping: Optional[Dict] = None
+    ) -> Generator[str, None, None]:
+        pass
+
+    @staticmethod
+    @abc.abstractmethod
+    def format_element(format, item):
+        pass
+
+
+class GSM8KDataset(Dataset):
     def __init__(
         self, data: List[Dict[str, Any]], main_field: str = "question"
     ) -> None:
@@ -35,6 +59,10 @@ class Dataset:
             else:
                 yield self.data[index]["type"]
             index += 1
+
+    @staticmethod
+    def format_element(format, item):
+        return format.format(question=item)
 
 
 def load_file(file_name: str):
@@ -69,9 +97,7 @@ def get_dataset(
     random.seed(seed)
 
     # check the percent_files
-    count_not_defined = sum(
-        [percent for percent in percent_files if percent < 0]
-    )
+    count_not_defined = sum([percent for percent in percent_files if percent < 0])
     total_percent = sum(percent_files) + count_not_defined
 
     if total_percent > 1:
@@ -80,16 +106,12 @@ def get_dataset(
         # assign the remaining percent to the not defined uniformly
         percent_files = tuple(
             [
-                percent
-                if percent >= 0
-                else 1 - total_percent / count_not_defined
+                percent if percent >= 0 else 1 - total_percent / count_not_defined
                 for percent in percent_files
             ]
         )
 
-    examples_per_file = [
-        int(n_examples * percent) for percent in percent_files
-    ]
+    examples_per_file = [int(n_examples * percent) for percent in percent_files]
     if sum(examples_per_file) < n_examples:
         # assign the remaining examples to the biggest percent
         examples_per_file[np.argmax(percent_files)] += n_examples - sum(
@@ -109,9 +131,7 @@ def get_dataset(
 
         # add file_origin field to the data
         for j in range(len(data)):
-            data[j]["base answer"] = float(
-                data[j]["base answer"].replace(",", "")
-            )
+            data[j]["base answer"] = float(data[j]["base answer"].replace(",", ""))
             data[j]["file_origin"] = file_name
 
         dataset.extend(data[: examples_per_file[i]])
@@ -120,4 +140,4 @@ def get_dataset(
     random.shuffle(dataset)
     split_index = int(len(dataset) * split_percentage)
 
-    return Dataset(dataset[:split_index]), Dataset(dataset[split_index:])
+    return GSM8KDataset(dataset[:split_index]), GSM8KDataset(dataset[split_index:])

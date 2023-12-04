@@ -57,7 +57,7 @@ class ModelPredictor:
         prompt_template: str = DEFAULT_PROMPT_TEMPLATE,
         extract_function: Optional[Callable] = None,  # extract the number
         top_p=1.0,
-        num_tokens=5,
+        max_tokens=5,
         num_samples=1,
         frequency_penalty=0.0,
         presence_penalty=0.0,
@@ -93,13 +93,13 @@ class ModelPredictor:
         results = []
         generations = []
         for question in dataset:
-            prompt = prompt_template.format(question=question)
+            prompt = dataset.format_element(prompt_template, question)
 
             response = openai.Completion.create(
                 engine=self.model_name,
                 prompt=prompt,
                 temperature=1.0,
-                max_tokens=num_tokens,
+                max_tokens=max_tokens,
                 top_p=top_p,
                 n=num_samples,
                 frequency_penalty=frequency_penalty,
@@ -122,9 +122,7 @@ class ModelPredictor:
             results.append(
                 processed_outputs[0] if num_samples == 1 else processed_outputs
             )
-            generations.append(
-                generation[0] if num_samples == 1 else generation
-            )
+            generations.append(generation[0] if num_samples == 1 else generation)
 
         return results, generations
 
