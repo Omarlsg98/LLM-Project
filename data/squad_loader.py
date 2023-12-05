@@ -38,7 +38,13 @@ class SquadDataset(Dataset):
     def get_type(
         self, to_choice_mapping: Optional[Dict] = None
     ) -> Generator[str, None, None]:
-        raise NotImplementedError
+        index = 0
+        while index < len(self.data):
+            if to_choice_mapping is not None:
+                yield to_choice_mapping[self.data[index]["is_impossible"]]
+            else:
+                yield self.data[index]["is_impossible"]
+            index += 1
 
     @staticmethod
     def format_element(format, item):
@@ -91,7 +97,7 @@ def get_squad_dataset(
         raise Exception("The sum of the percents must be 1")
     elif total_percent < 1:
         # assign the remaining percent to the not defined uniformly
-        percent_files = tuple(
+        percent_types = tuple(
             [
                 percent if percent >= 0 else 1 - total_percent / count_not_defined
                 for percent in percent_types
