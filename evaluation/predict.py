@@ -95,18 +95,32 @@ class ModelPredictor:
         for question in dataset:
             prompt = dataset.format_element(prompt_template, question)
 
-            response = openai.Completion.create(
-                engine=self.model_name,
-                prompt=prompt,
-                temperature=1.0,
-                max_tokens=max_tokens,
-                top_p=top_p,
-                n=num_samples,
-                frequency_penalty=frequency_penalty,
-                presence_penalty=presence_penalty,
-                logprobs=1,
-            )
-            outputs = [r["text"] for r in response["choices"]]  # type: ignore
+            try:
+                response = openai.Completion.create(
+                    engine=self.model_name,
+                    prompt=prompt,
+                    temperature=1.0,
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                    n=num_samples,
+                    frequency_penalty=frequency_penalty,
+                    presence_penalty=presence_penalty,
+                    logprobs=1,
+                )
+                outputs = [r["text"] for r in response["choices"]]  # type: ignore
+            except:
+                response = openai.ChatCompletion.create(
+                    model=self.model_name,
+                    temperature=1.0,
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                    n=num_samples,
+                    frequency_penalty=frequency_penalty,
+                    presence_penalty=presence_penalty,
+                )
+                outputs = [r["message"]["content"] for r in response["choices"]]  # type: ignore
+
             processed_outputs = []
             generation = outputs
             if extract_function is not None:
