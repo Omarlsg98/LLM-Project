@@ -1,3 +1,4 @@
+dataset_composition metric1 metric2 model_name  is_full_dataset prompt_template
 (1.0, 0.0, 0.0) 0.42	0.6796233162972294	gpt-3.5-turbo-instruct	False	Given the following context:\nCONTEXT: {context}\nAnswer the following question:\nQUESTION: {question}\nANSWER: 
 (1.0, 0.0, 0.0) 0.56	0.7576607873276404	gpt-3.5-turbo-instruct	False	CONTEXT: {context}\nQUESTION: {question}\nANSWER: 
 (1.0, 0.0, 0.0) 0.38	0.5804114168430674	gpt-3.5-turbo-instruct	False	{context}\n{question}\nANSWER:
